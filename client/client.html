@@ -10,7 +10,61 @@
          online at your node.js address under /socket.io/socket.io.js 
          You can disable that on the server if desired
     -->
+    <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.34/browser.min.js"></script>
+    <script type="text/babel">
+    	const connectSocket = (e) => {
+    		const message = document.querySelector("#message");
+    		const chat = document.querySelector("#chat");
+    		const socket = io.connect();
+    		let user;
+
+    		const sendMessage = () => {
+    			const msg = { name: user, msg: message.value };
+    			console.log(msg);
+	    		socket.emit('msgToServer', msg);
+    		};
+
+    		socket.on('connect', () => {
+    			console.log('connecting');
+    			user = document.querySelector("#username").value;
+
+    			if(!user) {
+    				user = 'unknown';
+    			}
+
+    			socket.emit('join', { name: user });
+
+	    		const send = document.querySelector("#send");
+	    		const message = document.querySelector("#message");
+	    		send.addEventListener('click', sendMessage);
+    		});
+
+    		socket.on('msg', (data) => {
+    			chat.value += `${data.name}: ${data.msg}\n`;
+    			console.log(data);
+    		});
+
+    		socket.on('whisperFrom', (data) => {
+    			chat.value += `From ${data.name}: ${data.msg}\n`;
+    		});
+
+    		socket.on('whisperTo', (data) => {
+    			chat.value += `To ${data.name}: ${data.msg}\n`;
+    		});
+
+    		socket.on('disconnect', () => {
+    			send.removeEventListener('click', sendMessage);
+    		})
+    	};
+
+    	const init = () => {
+    		const connect = document.querySelector("#connect");
+    		connect.addEventListener('click', connectSocket);
+    	}
+
+    	window.onload = init;
+    </script>
 	<style>
 		textarea {
 			display: block;
